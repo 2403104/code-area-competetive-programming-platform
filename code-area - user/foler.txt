@@ -1,0 +1,52 @@
+/online-judge-platform
+│
+├── /client                   # Main React Frontend (No JSX)
+│   ├── /public
+│   ├── /src
+│   │   ├── /components       # Pure JS React Components
+│   │   ├── /pages            # Home.js, ProblemSet.js, etc.
+│   │   ├── /services         # API handlers
+│   │   ├── /context          # React Context (Auth etc.)
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── .env                  # Frontend environment vars
+│   ├── package.json
+│   └── webpack.config.js
+│
+├── /server                   # Main Express Backend (Problemset, Contest, Discussion)
+│   ├── /controllers
+│   ├── /models
+│   ├── /routes
+│   ├── /middleware
+│   ├── /utils
+│   ├── server.js
+│   ├── .env                  # Backend environment vars (Mongo, JWT)
+│   └── package.json
+│
+├── /editor-backend           # Editor Backend (Judge0 API Integration)
+│   ├── /routes
+│   ├── /controllers
+│   ├── /utils
+│   ├── server.js
+│   ├── .env                  # Judge0 API details
+│   └── package.json
+│
+├── /editor-client            # Monaco Editor Frontend (No JSX)
+│   ├── /public
+│   ├── /src
+│   │   ├── /components
+│   │   ├── /services
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── .env                  # Editor frontend env vars
+│   ├── package.json
+│   └── webpack.config.js
+│
+├── /config                   # Configuration files (No YAML)
+│   └── nginx.conf            # Nginx reverse proxy config
+│
+├── /docs                     # Optional project documentation
+│
+├── .gitignore
+├── README.md
+└── package.json              # (Optional monorepo root)
