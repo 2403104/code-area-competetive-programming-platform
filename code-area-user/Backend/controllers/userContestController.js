@@ -89,6 +89,9 @@ const checkRegistered = async (req, res) => {
     return res.status(500).json({ success: false, error: "Internal server error" });
   }
 }
+const { updateUserInRedis } = require('./contestStandingController');
+const { redisClient } = require('./redis');
+
 const updateSubmission = async (req, res) => {
   try {
     const { contestId, username, newSubmission } = req.body;
@@ -96,6 +99,7 @@ const updateSubmission = async (req, res) => {
     if (!contest) {
       return res.status(404).json({ success: false, error: "Contest not found" });
     }
+
     if (newSubmission.status === "Accepted") {
       for (let prob of contest.problems) {
         if (prob._id.toString() === newSubmission.problemId.toString()) {
@@ -104,6 +108,7 @@ const updateSubmission = async (req, res) => {
         }
       }
     }
+
     let userFound = false;
     for (let user of contest.submissions) {
       if (user.username === username) {
@@ -113,18 +118,89 @@ const updateSubmission = async (req, res) => {
       }
     }
     if (!userFound) {
-      contest.submissions.push({
-        username,
-        mySubmissions: [newSubmission]
-      });
-    };
+      contest.submissions.push({ username, mySubmissions: [newSubmission] });
+    }
+
     await contest.save();
+    try {
+      const idMap = new Map();
+      const scoreMap = new Map();
+      let idx = 1;
+      for (const que of contest.problems) {
+        idMap.set(String(que._id), idx);
+        scoreMap.set(String(que._id), que.score || 100);
+        idx++;
+      }
+
+      const probId = String(newSubmission.problemId);
+      const qNo = idMap.get(probId);
+      const qScore = scoreMap.get(probId);
+
+      const hKey = `contest:${contestId}:userdata`;
+      const raw = await redisClient.hget(hKey, username);
+      const userData = raw
+        ? JSON.parse(raw)
+        : { score: new Array(contest.problems.length + 1).fill(0), penalty: 0, totalScore: 0, correctCnt: 0 };
+
+      if (userData.score[qNo] <= 0) {
+        const wrongAttempts = -userData.score[qNo];
+        if (newSubmission.status === 'Accepted') {
+          const currScore = Math.max(0.3 * qScore, qScore - wrongAttempts * 50);
+          userData.totalScore += currScore;
+          userData.penalty += wrongAttempts * 50;
+          userData.correctCnt += 1;
+          userData.score[qNo] = currScore;
+        } else {
+          userData.score[qNo] -= 1;
+        }
+        await updateUserInRedis(contestId, username, userData);
+      }
+    } catch (redisErr) {
+      console.error("Redis update failed:", redisErr);
+    }
+
     res.status(200).json({ success: true, message: "Submission updated successfully" });
   } catch (error) {
     console.error("Error updating submission:", error);
     res.status(500).json({ success: false, error: "Internal server error" });
   }
 }
+// const updateSubmission = async (req, res) => {
+//   try {
+//     const { contestId, username, newSubmission } = req.body;
+//     const contest = await Contest.findById(contestId);
+//     if (!contest) {
+//       return res.status(404).json({ success: false, error: "Contest not found" });
+//     }
+//     if (newSubmission.status === "Accepted") {
+//       for (let prob of contest.problems) {
+//         if (prob._id.toString() === newSubmission.problemId.toString()) {
+//           prob.Accepted = (prob.Accepted || 0) + 1;
+//           break;
+//         }
+//       }
+//     }
+//     let userFound = false;
+//     for (let user of contest.submissions) {
+//       if (user.username === username) {
+//         user.mySubmissions.push(newSubmission);
+//         userFound = true;
+//         break;
+//       }
+//     }
+//     if (!userFound) {
+//       contest.submissions.push({
+//         username,
+//         mySubmissions: [newSubmission]
+//       });
+//     };
+//     await contest.save();
+//     res.status(200).json({ success: true, message: "Submission updated successfully" });
+//   } catch (error) {
+//     console.error("Error updating submission:", error);
+//     res.status(500).json({ success: false, error: "Internal server error" });
+//   }
+// }
 const updateCurentStanding = async (req, res) => {
   try {
     const { id } = req.params;

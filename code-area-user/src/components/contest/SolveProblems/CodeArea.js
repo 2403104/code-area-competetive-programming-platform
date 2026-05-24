@@ -118,6 +118,7 @@ const CodeArea = () => {
       });
 
       const data = await subRes.json();
+      console.log(data)
       if (data.success) {
         setTempSubList([]);
         setSubList(prev => [currSubmission, ...prev]);

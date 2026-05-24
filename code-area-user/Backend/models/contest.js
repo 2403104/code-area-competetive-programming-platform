@@ -8,6 +8,7 @@ const problemSchema = new mongoose.Schema({
   outputFormat: String,
   timeLimit: Number,
   memoryLimit: Number,
+  score: { type: Number, default: 100 },
   Accepted: { type: Number, default: 0 },
   Submitted: { type: Number, default: 0 },
   constraints: [String],

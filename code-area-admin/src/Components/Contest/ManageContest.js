@@ -29,9 +29,15 @@ const ManageContest = () => {
     const fetchContest = useCallback(() => {
         api.get(`/admin/contests/${id}`).then(data => {
             setContest(data);
+            const localDate = data.startDate ? new Date(data.startDate) : null;
+            const toLocalInput = (d) => {
+                if (!d) return '';
+                const offset = d.getTimezoneOffset() * 60000;
+                return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+            };
             setEditForm({
                 contestName: data.contestName,
-                startDate: data.startDate ? data.startDate.slice(0, 16) : '',
+                startDate: toLocalInput(localDate),
                 duration: data.duration
             });
             setLoading(false);
@@ -46,7 +52,7 @@ const ManageContest = () => {
         try {
             await api.put(`/admin/contests/${id}`, {
                 contestName: editForm.contestName,
-                startDate: editForm.startDate,
+                startDate: new Date(editForm.startDate).toISOString(),
                 duration: Number(editForm.duration)
             });
             setSaveMsg('Contest updated!');

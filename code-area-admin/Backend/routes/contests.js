@@ -16,7 +16,7 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // Get single contest
-router.get('/:id', authMiddleware, async (req, res) => {
+router.get('/:id', authMiddleware, async (req, res) => { 
     try {
         const contest = await Contest.findById(req.params.id);
         if (!contest) return res.status(404).json({ message: 'Contest not found' });
