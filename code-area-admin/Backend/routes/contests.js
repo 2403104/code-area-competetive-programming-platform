@@ -4,6 +4,7 @@ const Contest = require('../models/Contest');
 const authMiddleware = require('../middleware/auth');
 const fs = require('fs');
 const path = require('path');
+const {redisClient, redisSubscriber} = require('../redis/client')
 
 // get all contests
 router.get('/', authMiddleware, async (req, res) => {
@@ -118,6 +119,38 @@ router.delete('/:id/problems/:problemId', authMiddleware, async (req, res) => {
     }
 });
 
+router.get('/:id/announcements/stream', async (req, res) => {
+  const {id} = req.params;
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  const sendLatest = async () => {
+    const latest = await redisClient.get(`contest:${id}:latestAnnouncement`);
+    if (!latest) return;
+    res.write(`data: ${latest}\n\n`);
+  }
+
+  await sendLatest();
+  
+  const channel = `contest:${id}:announcement`;
+
+  const onMessage = async (chan) => {
+    if (chan === channel) await sendLatest();
+  };
+
+  redisSubscriber.subscribe(channel);
+  redisSubscriber.on('message', onMessage);
+
+  req.on('close', () => {
+    redisSubscriber.unsubscribe(channel);
+    redisSubscriber.removeListener('message', onMessage);
+    res.end();
+  });
+})
+
 // send announcement
 router.post('/:id/announce', authMiddleware, async (req, res) => {
     try {
@@ -128,38 +161,22 @@ router.post('/:id/announce', authMiddleware, async (req, res) => {
             { new: true }
         );
         if (!contest) return res.status(404).json({ message: 'Contest not found' });
+        const latest = contest.announcements[contest.announcements.length - 1];
+        const payload = JSON.stringify({
+          _id:latest._id,
+          text: latest.text,
+          announcedAt: latest.announcedAt
+        })
+        await redisClient.set(`contest:${req.params.id}:latestAnnouncement`,
+          payload
+        );
+        await redisClient.publish(`contest:${req.params.id}:announcement`, 'announcement');
         res.json(contest);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// // Get all submissions for a contest (from contest.submissions)
-// router.get('/:id/submissions', authMiddleware, async (req, res) => {
-//     try {
-//         const contest = await Contest.findById(req.params.id);
-//         if (!contest) return res.status(404).json({ message: 'Contest not found' });
-
-//         const contestProblemIds = contest.problems.map(p => p._id.toString());
-
-//         const allSubmissions = [];
-//         contest.submissions.forEach(userSub => { 
-//             userSub.mySubmissions.forEach(sub => {
-//                 if (contestProblemIds.includes(sub.problemId.toString())) {
-//                     allSubmissions.push({
-//                         ...sub.toObject(),
-//                         username: userSub.username
-//                     });
-//                 }
-//             });
-//         });
-
-//         allSubmissions.sort((a, b) => new Date(b.submissionTime) - new Date(a.submissionTime));
-//         res.json(allSubmissions);
-//     } catch (err) {
-//         res.status(500).json({ message: err.message });
-//     }
-// });
 
 router.get('/:id/submissions', authMiddleware, async (req, res) => {
     try {
@@ -212,5 +229,6 @@ router.get('/:id/candidates', authMiddleware, async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 module.exports = router;

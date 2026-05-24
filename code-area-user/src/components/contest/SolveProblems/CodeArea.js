@@ -1,9 +1,7 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { flushSync } from 'react-dom';
 import Editor from '@monaco-editor/react';
 import ContestContext from '../../../myContext/contest/ContestContext';
-import { v4 as uuidv4 } from 'uuid';
 import { useParams } from 'react-router-dom';
 
 const CodeArea = () => {
@@ -68,7 +66,6 @@ const CodeArea = () => {
     }
   };
 
-
   const handleSubmission = async () => {
     const tempSubmission = {
       problemId: problem._id,
@@ -77,7 +74,7 @@ const CodeArea = () => {
       time: 0,
       errType: "",
       errMessage: "",
-      verdicts: [],
+      verdicts: [], 
       submissionTime: new Date()
     };
     setTempSubList(prev => [tempSubmission, ...prev]);

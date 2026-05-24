@@ -1,6 +1,15 @@
-const { Redis } = require('ioredis');
+const Redis = require('ioredis');
 require('dotenv').config();
 
-const client = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+const redisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+const redisSubscriber = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
-module.exports = { client };
+redisClient.on('error', (err) => {
+  console.error('Redis Client error:', err);
+});
+
+redisSubscriber.on('error', (err) => {
+  console.error('Redis Subscriber error:', err);
+});
+
+module.exports = { redisClient, redisSubscriber };

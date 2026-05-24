@@ -160,7 +160,7 @@ router.get('/:id/standings/stream', async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
+  res.flushHeaders(); // send headers immediately
 
   if(!activeFlushIntervals.has(id)) {
     activeFlushIntervals.set(id, null);
@@ -171,7 +171,6 @@ router.get('/:id/standings/stream', async (req, res) => {
     const standings = await readRedisStandings(id);
     if (!standings) return;
     const problemCount = Number(await redisClient.get(`contest:${id}:problemCount`));
-    console.log(JSON.stringify({ standings, problemCount }));
     res.write(`data: ${JSON.stringify({ standings, problemCount })}\n\n`);
   };
 

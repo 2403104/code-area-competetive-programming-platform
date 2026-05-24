@@ -29,6 +29,7 @@ import ContestLayout from './components/contest/ContestLayout';
 import UserProfile from './components/UserProfile';
 import ProtectedContestRoute from './components/contest/ProtectedContestRoute';
 import FinalStandings from './components/contest/FinalStandings';
+import Announcements from './components/contest/Announcements';
 const AppContent = () => {
   const { showNavbar } = useContext(ProblemContext);
   return (
@@ -71,6 +72,11 @@ const AppContent = () => {
             <Route path="current-standings/:id" element={
               <ProtectedContestRoute>
                 <CurrentStandings/>
+              </ProtectedContestRoute>
+            } />
+            <Route path="announcements/:id" element={ 
+              <ProtectedContestRoute>
+                <Announcements />
               </ProtectedContestRoute>
             } />
           </Route>

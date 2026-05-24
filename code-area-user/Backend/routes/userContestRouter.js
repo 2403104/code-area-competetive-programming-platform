@@ -1,6 +1,6 @@
 const express=require('express');
 const router=express.Router();
-const {getAllContest,getContestById, registerUser, checkRegistered, unregisterUser, updateSubmission,updateCurentStanding, checkAccess}=require('../controllers/userContestController');
+const {getAllContest,getAllAnnouncements, getContestById, registerUser, checkRegistered, unregisterUser, updateSubmission,updateCurentStanding, checkAccess}=require('../controllers/userContestController');
 
 router.get('/get-all-contest',getAllContest);
 
@@ -13,4 +13,6 @@ router.get('/get-contest/:id',getContestById);
 router.post('/add-new-submission',updateSubmission);
 router.post('/update-current-standing/:id',updateCurentStanding);
 router.post('/check-contest-access/:id',checkAccess);
+router.get('/announcements/:id', getAllAnnouncements);
+
 module.exports=router

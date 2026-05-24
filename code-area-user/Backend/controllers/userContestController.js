@@ -1,5 +1,6 @@
 const contest = require('./../models/contest');
-const Contest = require('./../models/contest')
+const Contest = require('./../models/contest');
+const {redisClient, redisSubscriber} = require('./redis');
 const getAllContest = async (req, res) => {
   try {
     const allContest = await Contest.find();
@@ -8,6 +9,16 @@ const getAllContest = async (req, res) => {
     console.error("Create Contest Error:", err);
     res.status(500).json({ success: false, error: err });
 
+  }
+}
+const getAllAnnouncements = async (req, res) => {
+  const {id} = req.params;
+  try {
+    const contest = await Contest.findById(id);
+    if (!contest) return res.status(404).json({ message: 'Contest not found' });
+    res.json(contest.announcements);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 }
 const getChallenge = async (req, res) => {
@@ -90,7 +101,6 @@ const checkRegistered = async (req, res) => {
   }
 }
 const { updateUserInRedis } = require('./contestStandingController');
-const { redisClient } = require('./redis');
 
 const updateSubmission = async (req, res) => {
   try {
@@ -244,4 +254,5 @@ const checkAccess = async (req, res) => {
     return res.status(500).json({ allowed: false, error: 'Server error' });
   }
 }
-module.exports = { getChallenge, getAllContest, getContestById, registerUser, unregisterUser, checkRegistered, updateSubmission, updateCurentStanding, checkAccess }
+
+module.exports = { getChallenge, getAllAnnouncements, getAllContest, getContestById, registerUser, unregisterUser, checkRegistered, updateSubmission, updateCurentStanding, checkAccess }
