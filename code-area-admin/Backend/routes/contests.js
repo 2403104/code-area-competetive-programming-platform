@@ -5,7 +5,7 @@ const authMiddleware = require('../middleware/auth');
 const fs = require('fs');
 const path = require('path');
 
-// Get all contests
+// get all contests
 router.get('/', authMiddleware, async (req, res) => {
     try {
         const contests = await Contest.find().sort({ startDate: -1 });
@@ -15,7 +15,7 @@ router.get('/', authMiddleware, async (req, res) => {
     }
 });
 
-// Get single contest
+// get single contest
 router.get('/:id', authMiddleware, async (req, res) => { 
     try {
         const contest = await Contest.findById(req.params.id);
@@ -26,7 +26,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Create contest
+// create contest
 router.post('/', authMiddleware, async (req, res) => {
     try {
         const contest = new Contest(req.body);
@@ -37,7 +37,7 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 });
 
-// Update contest details
+// update contest details
 router.put('/:id', authMiddleware, async (req, res) => {
     try {
         const contest = await Contest.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -48,7 +48,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Delete contest
+// delete contest
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         await Contest.findByIdAndDelete(req.params.id);
@@ -58,7 +58,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Add problem to contest
+// add problem to contest
 router.post('/:id/problems', authMiddleware, async (req, res) => {
     try {
         const contest = await Contest.findByIdAndUpdate(
@@ -73,7 +73,7 @@ router.post('/:id/problems', authMiddleware, async (req, res) => {
     }
 });
 
-// Update a problem inside contest
+// update a problem inside contest
 router.put('/:id/problems/:problemId', authMiddleware, async (req, res) => {
     try {
         const contest = await Contest.findById(req.params.id);
@@ -88,7 +88,7 @@ router.put('/:id/problems/:problemId', authMiddleware, async (req, res) => {
     }
 });
 
-// Save hidden testcases for a problem inside contest
+// save hidden testcases for a problem inside contest
 router.put('/:id/problems/:problemId/testcases', authMiddleware, async (req, res) => {
     try {
         const contest = await Contest.findById(req.params.id);
@@ -103,7 +103,7 @@ router.put('/:id/problems/:problemId/testcases', authMiddleware, async (req, res
     }
 });
 
-// Delete a problem from contest
+// delete a problem from contest
 router.delete('/:id/problems/:problemId', authMiddleware, async (req, res) => {
     try {
         const contest = await Contest.findByIdAndUpdate(
@@ -118,7 +118,7 @@ router.delete('/:id/problems/:problemId', authMiddleware, async (req, res) => {
     }
 });
 
-// Send announcement
+// send announcement
 router.post('/:id/announce', authMiddleware, async (req, res) => {
     try {
         const { text } = req.body;
@@ -177,7 +177,7 @@ router.get('/:id/submissions', authMiddleware, async (req, res) => {
     }
 });
 
-// Get registered candidates with stats from contest.submissions
+// get registered candidates with stats from contest.submissions
 router.get('/:id/candidates', authMiddleware, async (req, res) => {
     try {
         const contest = await Contest.findById(req.params.id);

@@ -3,6 +3,8 @@ const router = express.Router();
 const Contest = require('../models/contest');
 const { redisClient, redisSubscriber } = require('./redis');
 
+const activeFlushIntervals = new Map();
+
 function toCompositeScore(totalScore, correctCnt, penalty) {
   return totalScore * 1e10 + correctCnt * 1e5 - penalty;
 }
@@ -111,9 +113,6 @@ function calculateStandings(contest) {
 async function updateUserInRedis(contestId, username, userData) {
   const zKey = `contest:${contestId}:standings`;
   const hKey = `contest:${contestId}:userdata`;
-  console.log(contestId);
-  console.log(username);
-  console.log(userData);
   const pipeline = redisClient.pipeline();
   pipeline.zadd(zKey, toCompositeScore(userData.totalScore, userData.correctCnt, userData.penalty), username);
   pipeline.hset(hKey, username, JSON.stringify({
@@ -145,6 +144,16 @@ async function readRedisStandings(contestId) {
   });
 }
 
+function startFlushInterval(contestId, intervalMS = 5 * 60 * 1000) {
+  const intervalId = setInterval(async () => {
+    const standing = await readRedisStandings(contestId);
+    if(!standing) return;
+    await Contest.findByIdAndUpdate(contestId, { finalStanding: standing });
+    console.log(`Standings flushed to DB for contest ${contestId}`);
+  }, intervalMS);
+  activeFlushIntervals.set(contestId, intervalId);
+};
+
 router.get('/:id/standings/stream', async (req, res) => {
   const { id } = req.params;
 
@@ -152,6 +161,11 @@ router.get('/:id/standings/stream', async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
+
+  if(!activeFlushIntervals.has(id)) {
+    activeFlushIntervals.set(id, null);
+    startFlushInterval(id);
+  }
 
   const sendCurrent = async () => {
     const standings = await readRedisStandings(id);
