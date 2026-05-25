@@ -4,8 +4,6 @@ import { Editor } from '@monaco-editor/react';
 import judge0Languages from '../judge0code';
 import ProblemContext from '../myContext/problem/ProblemContext';
 import { v4 as uuidv4 } from 'uuid';
-// require('dotenv').config();
-// import dotenv from "dotenv";
 
 const CodeArea = () => {
     const navigate = useNavigate();
@@ -53,9 +51,8 @@ const CodeArea = () => {
         setLoading(false);
         navigate(`/problems/get-problem/${title}/test-cases`);
         try {
-            const JUDGE_BACKEND_URL = process.env.REACT_APP_JUDGE_BACKEND_URL || "http://localhost:3002";
-            const judge_url = `${JUDGE_BACKEND_URL}/run`;
-            const response = await fetch(judge_url, {
+            const REACT_APP_JUDGE_BACKEND_URL = process.env.REACT_APP_JUDGE_BACKEND_URL || 'http://localhost:3002';
+            const response = await fetch(`${REACT_APP_JUDGE_BACKEND_URL}/run`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userCode: code, language, input: testCases })
@@ -88,9 +85,8 @@ const CodeArea = () => {
             
         try {
             const timeLimit=problem?.timeLimit || 2;
-            const JUDGE_BACKEND_URL = process.env.REACT_APP_JUDGE_BACKEND_URL || "http://localhost:3002";
-            const judge_url = `${JUDGE_BACKEND_URL}/judge`;            
-            const response = await fetch(judge_url, {
+            const REACT_APP_JUDGE_BACKEND_URL = process.env.REACT_APP_JUDGE_BACKEND_URL || 'http://localhost:3002';
+            const response = await fetch(`${REACT_APP_JUDGE_BACKEND_URL}/judge`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ testcases: problem.testcases, checkerCode: problem.checkerCode, userCode: code, language,timeLimit , submissionId: newSubmissionId })
@@ -113,8 +109,8 @@ const CodeArea = () => {
                 time: res.time,
                 verdicts: res.verdicts
             }
-            const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:3001";
-            const subUrl = `${BACKEND_URL}/user/update-user`;
+
+            const subUrl = "http://localhost:3001/user/update-user";
             const subRes = await fetch(subUrl, {
                 method: 'POST',
                 headers: {
@@ -141,9 +137,8 @@ const CodeArea = () => {
         }
         const intervalId = setInterval(async () => {
             try {
-                const JUDGE_BACKEND_URL = process.env.REACT_APP_JUDGE_BACKEND_URL || "http://localhost:3002";
-                const get_testcase_index_url = `${JUDGE_BACKEND_URL}/submission/progress/${submissionId}`;              
-                const response = await fetch(get_testcase_index_url);
+              const REACT_APP_JUDGE_BACKEND_URL = process.env.REACT_APP_JUDGE_BACKEND_URL || 'http://localhost:3002';
+                const response = await fetch(`${REACT_APP_JUDGE_BACKEND_URL}/submission/progress/${submissionId}`);
                 const data = await response.json();
 
                 if (data.runningTestcase > 0) {

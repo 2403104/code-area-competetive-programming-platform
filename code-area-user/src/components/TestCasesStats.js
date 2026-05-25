@@ -4,8 +4,6 @@ import ProblemContext from '../myContext/problem/ProblemContext';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { coy } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import HorizonalLoader from './HorizontalLoader'
-// require('dotenv').config(); 
-// import dotenv from "dotenv";
 
 const TestCasesStats = () => {
     const context = useContext(ProblemContext);
@@ -45,22 +43,21 @@ const TestCasesStats = () => {
         }
     }, [subList, id]);
 
-    // const getRunningTestcaseIndex = async (submissionId) => {
-    //     try {
-    //         const JUDGE_BACKEND_URL = process.env.REACT_APP_JUDGE_BACKEND_URL || "http://localhost:3002";
-    //         const get_testcase_index_url = `${JUDGE_BACKEND_URL}/submission/progress/${submissionId}`;          
-    //         const response = await fetch(get_testcase_index_url);
-    //         const contentType = response.headers.get("content-type");
-    //         if (contentType && contentType.includes("application/json")) {
-    //             const data = await response.json();
-    //             return data.runningTestcase;
-    //         } else {
-    //             return runningTestCaseIndex;
-    //         }
-    //     } catch (error) {
-    //         return runningTestCaseIndex;
-    //     }
-    // };
+    const getRunningTestcaseIndex = async (submissionId) => {
+        try {
+          const REACT_APP_JUDGE_BACKEND_URL = process.env.REACT_APP_JUDGE_BACKEND_URL || 'http://localhost:3002';
+            const response = await fetch(`${REACT_APP_JUDGE_BACKEND_URL}/submission/progress/${submissionId}`);
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const data = await response.json();
+                return data.runningTestcase;
+            } else {
+                return runningTestCaseIndex;
+            }
+        } catch (error) {
+            return runningTestCaseIndex;
+        }
+    };
 
     const handleCopy = (e) => {
         e.stopPropagation();
@@ -72,21 +69,21 @@ const TestCasesStats = () => {
             .catch(err => { });
     };
 
-    // useEffect(() => {
-    //     const interval = setInterval(async () => {
-    //         const index = await getRunningTestcaseIndex(submissionId);
-    //         setRunningTestCaseIndex(index);
-    //     }, 1000);
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            const index = await getRunningTestcaseIndex(submissionId);
+            setRunningTestCaseIndex(index);
+        }, 1000);
 
-    //     return () => clearInterval(interval);
-    // }, [submissionId]);
+        return () => clearInterval(interval);
+    }, [submissionId]);
 
     if (!loading) {
         return (
             <div className="container d-flex justify-content-center align-items-center" style={{ height: '300px' }}>
                 <div className="d-flex align-items-center gap-3">
                     {runningTestCaseIndex === -1 
-                        ? <h4 className="text-secondary mb-0">Queued...</h4>
+                        ? <h4 className="text-secondary mb-0">Setting up the execution environment...</h4>
                         : <h4 className="text-secondary mb-0">Running on testcase {runningTestCaseIndex}...</h4>
                     }
                     <HorizonalLoader />

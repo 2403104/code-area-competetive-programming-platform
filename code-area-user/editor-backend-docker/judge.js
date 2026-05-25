@@ -8,7 +8,7 @@ const execAsync = util.promisify(exec);
 const testcaseProgress = new Map();
 
 const execute = async (req, res) => {
-    let id = null; // Docker Container ID returned by docker run
+    let id = null;
     let jobDir = null;
     try {
         const { testcases, checkerCode, userCode, language, timeLimit, submissionId } = req.body;
@@ -48,7 +48,6 @@ const execute = async (req, res) => {
         }
 
         try {
-            // Compiling the user code
             if (language === 'cpp') {
                 await execAsync(`docker exec ${id} bash -c "cd /app && g++ userCode.cpp -o userCode"`);
             } else if (language === 'java') {
@@ -56,13 +55,12 @@ const execute = async (req, res) => {
             }
         } catch (e) {
             return res.json({
-                errType: "Compilation Error From User Side",
+                errType: "Compilation Error",
                 errMessage: e.stderr || e.stdout || e.message
             });
         }
 
         try {
-            // Compiling the checker code
             await execAsync(`docker exec ${id} bash -c "cd /app && g++ checker.cpp -o customCheck"`);
         } catch (e) {
             return res.json({
@@ -74,7 +72,7 @@ const execute = async (req, res) => {
         const inputPath = path.join(jobDir, 'input.txt');
         const outputPath = path.join(jobDir, 'output.txt');
         const answerPath = path.join(jobDir, 'answer.txt');
-        const resultPath = path.join(jobDir, 'result.txt'); // will store the result (like ok answer is correct, wrong answer 1st numbers differ)
+        const resultPath = path.join(jobDir, 'result.txt');
         const timePath = path.join(jobDir, 'time.txt');
         const exitCodePath = path.join(jobDir, 'exitCode.txt');
         const scriptPath = path.join(jobDir, 'run.sh');
